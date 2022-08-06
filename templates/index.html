@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %} صفحه اصلی {% endblock %}
+{% block meta_description %}{% endblock meta_description %}
+{% block meta_keywords %} {% endblock meta_keywords %}
+
+{% block body %}
+<section class="footer-area bg-img bg-gradient-overlay ">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-heading text-center white">
+                    <h2 style="line-height: 1.5;">جهت مشاوره رایگان فرم زیر را تکمیل کنید</h2>
+                    <div class="line"></div>
+                </div>
+            </div>
+        </div>
+
+        <script src='https://www.google.com/recaptcha/api.js?render={{GOOGLE_RECAPTCHA_SITE_KEY}}'></script>
+        <script>
+            //global grecaptcha
+            grecaptcha.ready(function () {
+                grecaptcha.execute('{{GOOGLE_RECAPTCHA_SITE_KEY}}', {action: "/contact/"}).then(function (token) {
+                    document.getElementById('g-recaptcha-response').value = token;
+                });
+            });
+        </script>
+
+        <div class="row">
+            <div class="col-12">
+
+                <div class="appointment-form" style="direction: rtl">
+                    <div id="errors-container" class="alert alert-danger text-right hidden">
+                        <ul id="error-list" class="mb-0">
+
+                        </ul>
+                    </div>
+                    <form action="" method="POST" novalidate>
+                        {% csrf_token %}
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-md-6">
+                                    <div class="form-group mb-30">
+                                        {{ field }}
+                                    </div>
+                                    <h4 class='has-error'>{{ field.errors }}</h4>
+                                </div>
+                            {% endfor %}
+
+                            <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+                            <div class="col-12 text-center">
+                                <!--                                <input type="submit" class="btn dento-btn" value="تکمیل پروفایل"-->
+                                <!--                                       onclick="return contact_validation()">-->
+                                <button onclick="return contact_validation()" class="btn dento-btn">
+                                    تکمیل پروفایل
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

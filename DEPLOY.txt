@@ -1,0 +1,45 @@
+FOR docker-compose.yml :
+1.in directory root project:
+    1- chmode u+x init-letsencrypt.sh
+
+    2- ./init-letsencrypt.sh
+
+
+
+
+FOR docker-compose.alternate.yml:
+1.in directory root project:
+    1- dokcer-compose -f docker-compose.alternate.yml up -d
+
+    2- docker-compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d clinikyekta.com
+        >>> IF OUTPUT LIKE:  success message like "The dry run was successful"
+
+    3- UPDATE VOLUME nginx AND certbot:
+        >>> FOR CONTAINER nginx:
+            volumes:
+                - ./data/nginx/conf_alternate.d/two/:/etc/nginx/conf.d/:ro
+                - ./media:/app/media
+                - ./static:/app/static
+                - ./data/certbot/www/:/var/www/certbot/:ro
+                - ./data/certbot/conf/:/etc/nginx/ssl/:ro
+
+        >>> FOR CONTAINER certbot:
+            volumes:
+                - ./data/certbot/www/:/var/www/certbot/:rw
+                - ./data/certbot/conf/:/etc/letsencrypt/:rw
+
+    4- docker-compose restart
+
+    5- docker-compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d clinikyekta.com
+        >>> IF OUTPUT LIKE: Account registered.
+                            Requesting a certificate for clinikyekta.com
+
+    6- docker-compose exec nginx nginx -s reload
+
+    7- docker-compose -f docker-compose.alternate.yml up -d
+
+
+
+Renewing the certificates:
+    >>>This small "renew" command is enough to let your system work as expected. You just have to run it once every three months.
+    1- docker compose run --rm certbot renew

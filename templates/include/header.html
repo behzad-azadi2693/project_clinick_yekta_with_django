@@ -1,0 +1,40 @@
+{% load static %}
+
+<header class="header-area">
+    <div class="top-header-area">
+        <div class="container h-100">
+            <div class="row h-100 align-items-center">
+
+                <div class="col-6 col-md-9 col-lg-8">
+                    <div class="top-header-content">
+                        <a href="#" data-toggle="tooltip" data-placement="bottom" title=""
+                           data-original-title="{{info.address}}"><i
+                                class="fa fa-map-marker"><span>{{info.address}}</span></i></a>
+                        <a href="mailto: {{info.email}}" data-toggle="tooltip" data-placement="bottom" title=""
+                           data-original-title="{{info.email}}"><i class="fa fa-envelope"></i>
+                            <span>{{info.email}}</span></a>
+                    </div>
+                </div>
+
+
+                <div class="col-6 col-md-3 col-lg-4">
+                    <div class="top-header-social-info text-right">
+                        <a href='{{info.instagram}}' data-toggle="tooltip" data-placement="bottom" title=""
+                           data-original-title="Facebook"><i class="fa fa-facebook"></i></a>
+                        <a href='{{info.instagram}}' data-toggle="tooltip" data-placement="bottom" title=""
+                           data-original-title="instagram"><i class="fa fa-instagram"></i></a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="main-header-area">
+        <div class="classy-nav-container breakpoint-off">
+            <div class="container-fluid">
+                <img style="width: 190px;height: 90px;float: right" src="{% static '/images/core-img/12.jpg' %}">
+            </div>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,118 @@
+version: '3.9'
+
+services:
+    postgres:
+        image: postgres
+        container_name: ${DB_HOST}
+        restart: on-failure
+        environment: 
+            - POSTGRES_DB=${DB_NAME}
+            - POSTGRES_USER=${DB_USER}
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
+        networks: 
+            - main
+        ports: 
+            - "5432:5432"
+        volumes: 
+            - ./data/postgres:/var/lib/postgresql/data 
+
+    pgbackups:
+        image: prodrigestivill/postgres-backup-local
+        container_name: pgdump
+        restart: always
+        user: postgres:postgres # Optional: see below
+        volumes:
+            - ./data/backups:/backups
+        links:
+            - postgres
+        depends_on:
+            - postgres
+        environment:
+            - POSTGRES_HOST=db
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+         #  - POSTGRES_PASSWORD_FILE=/run/secrets/db_password <-- alternative for POSTGRES_PASSWORD (to use with docker secrets)
+            - POSTGRES_EXTRA_OPTS=-Z6 --schema=public --blobs
+            - SCHEDULE=@daily
+            - BACKUP_KEEP_DAYS=7
+            - BACKUP_KEEP_WEEKS=4
+            - BACKUP_KEEP_MONTHS=6
+            - HEALTHCHECK_PORT=8080
+          
+    pgadmin:
+        image: dpage/pgadmin4
+        container_name: pgadmin
+        restart: on-failure
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=a@a.com
+            - PGADMIN_DEFAULT_PASSWORD=a
+        ports:
+            - "5050:80"
+        volumes: 
+            - ./data/pgadmin:/var/lib/pgadmin/data
+        networks:
+            - main
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: app
+        restart: on-failure
+        command: sh -c "python3 manage.py makemigrations && 
+                        python3 manage.py migrate --no-input && 
+                        python3 manage.py collectstatic --no-input &&
+                        python manage.py createsuperuser --user admin --email admin@gmail.com --noinput; &&
+                        uwsgi --ini uwsgi.ini"
+        #gunicorn -k gevent config.wsgi:application -b 0.0.0.0:8000"
+        depends_on: 
+            - postgres
+        expose: 
+            - "8000"
+        networks:
+            - main
+        volumes: 
+            - .:/code/
+            - ./static:/app/static
+            - ./media:/app/media
+        
+    nginx:
+        image: nginx
+        container_name: nginx
+        command: nginx -g 'daemon off;'
+        restart: on-failure
+        depends_on:
+            - app
+        networks: 
+            - main
+        ports: 
+            - "80:80"
+            - "443:443"
+        volumes: 
+            - ./data/nginx/conf.d:/etc/nginx/conf.d
+            - ./media:/app/media
+            - ./static:/app/static
+            - ./data/certbot/conf:/etc/nginx/ssl/:ro
+            - ./data/certbot/www:/var/www/certbot/:ro
+
+    certbot:
+      image: certbot/certbot
+      container_name: certbot
+      restart: unless-stopped
+      volumes:
+        - ./data/certbot/conf:/etc/letsencrypt/:rw
+        - ./data/certbot/www:/var/www/certbot/:rw
+      #entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+
+
+networks:
+  main:
+
+volumes:
+  static:
+
+  media:
+
+  data:
